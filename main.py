@@ -78,10 +78,10 @@ def add_products():
         with sqlite3.connect("point_sale.db") as connection:
             cursor = connection.cursor()
             cursor.execute("INSERT INTO product_info("
-                           "category"
-                           "name"
-                           "price"
-                           "description VALUES(?, ?, ?, ?", (category, name, price, description))
+                           "category,"
+                           "name,"
+                           "price,"
+                           "description) VALUES(?, ?, ?, ?)", (category, name, price, description))
             connection.commit()
             response["message"] = "success"
             response["status_code"] = 201
@@ -103,7 +103,7 @@ def view_products():
     return response
 
 
-@app.route('/updating/<int:product_id>', methods=["POSTS"])
+@app.route('/updating/<int:product_id>/', methods=["PUT"])
 def updating_products(product_id):
     response = {}
 
@@ -116,7 +116,7 @@ def updating_products(product_id):
                 put_data["category"] = incoming_data.get("category")
                 with sqlite3.connect('point_sale.db') as conn:
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE product_info SET category =?", (put_data["category"], product_id))
+                    cursor.execute("UPDATE product_info SET category =? WHERE product_id =?", (put_data["category"], product_id))
                     conn.commit()
                     response['message'] = "Update was Successful"
                     response['status_code'] = 200
@@ -126,7 +126,7 @@ def updating_products(product_id):
 
                 with sqlite3.connect('point_sale.db') as conn:
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE product_info SET name =?", (put_data["name"], product_id))
+                    cursor.execute("UPDATE product_info SET name =? WHERE product_id =?", (put_data["name"], product_id))
                     conn.commit()
                     response['message'] = "Update was Successful"
                     response['status_code'] = 200
@@ -136,7 +136,7 @@ def updating_products(product_id):
 
                 with sqlite3.connect('point_sale.db') as conn:
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE product_info SET price =? WHERE id=?", (put_data["price"], product_id))
+                    cursor.execute("UPDATE product_info SET price =? WHERE product_id=?", (put_data["price"], product_id))
                     conn.commit()
 
                     response["price"] = "Price updated successfully"
@@ -147,7 +147,7 @@ def updating_products(product_id):
 
                 with sqlite3.connect('point_sale.db') as conn:
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE product_info SET description =? WHERE id=?", (put_data["description"], product_id))
+                    cursor.execute("UPDATE product_info SET description =? WHERE product_id=?", (put_data["description"], product_id))
                     conn.commit()
 
                     response["description"] = "Description updated successfully"
@@ -155,9 +155,16 @@ def updating_products(product_id):
     return response
 
 
-@app.route('/deleting/<int:item_id>')
+@app.route('/deleting/<int:item_id>/')
 def delete_products(item_id):
-    pass
+    response = {}
+
+    with sqlite3.connect("point_sale.db") as connection:
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM product_info WHERE product_id")
+        response['status_code'] = 200
+        response['message'] = "Product deleted successfully."
+    return response
 
 
 if __name__ == '__main__':
