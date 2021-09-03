@@ -62,7 +62,28 @@ def register_user():
             connection.commit()
             response["message"] = "success"
             response["status_code"] = 201
+
         return response
+
+
+@app.route("/login/", methods=["POST"])
+def login():
+    response = {}
+
+    if request.method == "POST":
+        username = request.form['username']
+        password = request.form['password']
+
+        with sqlite3.connect("point_sale.db") as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM user_info WHERE username='" + username + "' AND password='" + password + "'")
+            user = cursor.fetchone()
+
+            if user:
+                response["status_code"] = 201
+                response["message"] = "success"
+
+    return response
 
 
 @app.route('/adding/', methods=['POST'])
@@ -83,6 +104,7 @@ def add_products():
                            "price,"
                            "description) VALUES(?, ?, ?, ?)", (category, name, price, description))
             connection.commit()
+
             response["message"] = "success"
             response["status_code"] = 201
         return response
@@ -103,13 +125,28 @@ def view_products():
     return response
 
 
+@app.route('/viewing/<int:product_id>')
+def view_product(product_id):
+    response = {}
+
+    with sqlite3.connect("point_sale.db") as connection:
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM product_info WHERE product_id = " + str(product_id))
+
+        posts = cursor.fetchall()
+
+    response['status_code'] = 200
+    response['data'] = posts
+    return response
+
+
 @app.route('/updating/<int:product_id>/', methods=["PUT"])
 def updating_products(product_id):
     response = {}
 
     if request.method == "PUT":
         with sqlite3.connect('point_sale.db') as conn:
-            incoming_data = dict(request.json)
+            incoming_data = dict(request.form)
             put_data = {}
 
             if incoming_data.get("category") is not None:
@@ -161,7 +198,7 @@ def delete_products(item_id):
 
     with sqlite3.connect("point_sale.db") as connection:
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM product_info WHERE product_id")
+        cursor.execute("DELETE FROM product_info WHERE product_id = " + str(item_id))
         response['status_code'] = 200
         response['message'] = "Product deleted successfully."
     return response
